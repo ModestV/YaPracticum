@@ -1,0 +1,32 @@
+{% extends 'vacancies/base.html' %}
+
+{% block title %}{{ vacancy.title }}{% endblock %}
+
+{% block content %}
+    <h2>{{ vacancy.title }}</h2>
+    {% if vacancy.company_logo %}
+        <div class="logo"><img src="{{ vacancy.company_logo }}" alt="Логотип"></div>
+    {% endif %}
+    <p><strong>Компания:</strong> {{ vacancy.company_name|default:"Не указана" }}</p>
+    <p><strong>Город:</strong> {{ vacancy.city|default:"Не указан" }}</p>
+    <p><strong>Категория:</strong> {{ vacancy.category|default:"Не указана" }}</p>
+    <p class="salary">
+        <strong>Зарплата:</strong>
+        {% if vacancy.salary_from and vacancy.salary_to %}
+            {{ vacancy.salary_from }} — {{ vacancy.salary_to }} руб.
+        {% elif vacancy.salary_from %}
+            от {{ vacancy.salary_from }} руб.
+        {% elif vacancy.salary_to %}
+            до {{ vacancy.salary_to }} руб.
+        {% else %}
+            Не указана
+        {% endif %}
+    </p>
+    <p><strong>Описание:</strong></p>
+    <div style="border: 1px solid #ddd; padding: 10px; background: #f9f9f9;">
+        {{ vacancy.description|safe }}
+    </div>
+    <br>
+    <a href="{{ vacancy.url }}" target="_blank">Перейти на HH.ru</a> | 
+    <a href="{% url 'vacancies:catalog' %}">Назад в каталог</a>
+{% endblock %}

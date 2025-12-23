@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dog Breeds Viewer</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+ <div class="container">
+        <h1>Добро пожаловать в Просмотрщик Пород Собак!</h1>
+
+        <!-- Форма для ввода пород -->
+        <form method="post" action="{% url 'dogs_images' %}" class="breed-form">
+            {% csrf_token %}
+            <label for="breeds">Введите названия пород через запятую (например: african, chow, dingo):</label><br>
+            <input type="text" id="breeds" name="breeds" placeholder="african, chow, dingo" required>
+            <button type="submit">Показать изображения</button>
+        </form>
+
+        <!-- Отображение списка всех пород -->
+        <h2>Список всех доступных пород:</h2>
+        <ul>
+            {% for breed in breeds %}
+                <li>{{ breed }}</li>
+            {% empty %}
+                <li>Список пород пуст или не удалось его загрузить.</li>
+            {% endfor %}
+        </ul>
+
+        <!-- Отображение изображений выбранных пород -->
+        {% if images_data %}
+            <h2>Изображения выбранных пород:</h2>
+            <div class="images-container">
+                {% for item in images_data %}
+                    <div class="image-card">
+                        <h3>{{ item.breed }}</h3>
+                        {% if item.image_url %}
+                            <img src="{{ item.image_url }}" alt="Изображение {{ item.breed }}" width="300">
+                        {% else %}
+                            <p style="color: red;">{{ item.error }}</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

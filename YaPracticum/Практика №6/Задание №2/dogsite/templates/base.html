@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{% block title %}SOBAKI{% endblock %}</title>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'styles.css' %}">
+    </head>
+    <body>
+        <header>
+            <h1>Собачкеры</h1>
+        </header>
+
+        <main>
+            {% block content %}
+
+            {% endblock %}
+        </main>
+    </body>
+</html>
