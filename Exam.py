@@ -35,8 +35,8 @@ class Circle(Shape):
         self.x += dx
         self.y += dy
 
-    def draw(self) -> None:
-        pass
+    def draw(self) -> str:
+        return f'Происходит процесс рисования лютого круга с цветом:{self.color}, радиуса: {self.radius} в точке: ({self.x};{self.y})'
 
 
 class Rectangle(Shape):
@@ -53,8 +53,8 @@ class Rectangle(Shape):
         self.x += dx
         self.y += dy
 
-    def draw(self) -> None:
-        pass
+    def draw(self) -> str:
+        return f'Происходит процесс рисования лютого прямоугольника с цветом:{self.color}, высоты: {self.height}, ширины: {self.width} из точки: ({self.x};{self.y})'
 
 
 class Line(Shape):
@@ -74,7 +74,7 @@ class Line(Shape):
         self.y2 += dy
 
     def draw(self) -> None:
-        pass
+        return f'Происходит вычерчивание жалкой линии от точки: ({self.x1};{self.y1}) и до точки: ({self.x2};{self.y2})'
 
 
 class Canvas:
