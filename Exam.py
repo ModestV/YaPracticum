@@ -205,135 +205,135 @@ class EditorHistory:
         self.undo_stack.append(command)
 
 
-if __name__ == "__main__":
-    canvas = Canvas()
-    history = EditorHistory()
 
-    while True:
-        print("\nМеню:")
-        print("1. Добавить круг")
-        print("2. Добавить прямоугольник")
-        print("3. Добавить линию")
-        print("4. Удалить фигуру")
-        print("5. Переместить фигуру")
-        print("6. Изменить цвет фигуры")
-        print("7. Undo")
-        print("8. Redo")
-        print("9. Выход")
-        choice = input("Выберите действие: ").strip()
+canvas = Canvas()
+history = EditorHistory()
 
-        if choice == '1':
-            try:
-                x = float(input("x: "))
-                y = float(input("y: "))
-                radius = float(input("Радиус: "))
-                color = input("Цвет: ")
-                shape = Circle(x, y, radius, color)
-                command = AddShapeCommand()
+while True:
+    print("\nМеню:")
+    print("1. Добавить круг")
+    print("2. Добавить прямоугольник")
+    print("3. Добавить линию")
+    print("4. Удалить фигуру")
+    print("5. Переместить фигуру")
+    print("6. Изменить цвет фигуры")
+    print("7. Undo")
+    print("8. Redo")
+    print("9. Выход")
+    choice = input("Выберите действие: ").strip()
+
+    if choice == '1':
+        try:
+            x = float(input("x: "))
+            y = float(input("y: "))
+            radius = float(input("Радиус: "))
+            color = input("Цвет: ")
+            shape = Circle(x, y, radius, color)
+            command = AddShapeCommand()
+            history.execute_command(command, canvas, shape)
+            print("Круг добавлен.")
+        except ValueError:
+            print("Ошибка ввода данных.")
+
+    elif choice == '2':
+        try:
+            x = float(input("x: "))
+            y = float(input("y: "))
+            width = float(input("Ширина: "))
+            height = float(input("Высота: "))
+            color = input("Цвет: ")
+            shape = Rectangle(x, y, width, height, color)
+            command = AddShapeCommand()
+            history.execute_command(command, canvas, shape)
+            print("Прямоугольник добавлен.")
+        except ValueError:
+            print("Ошибка ввода данных.")
+
+    elif choice == '3':
+        try:
+            x1 = float(input("x1: "))
+            y1 = float(input("y1: "))
+            x2 = float(input("x2: "))
+            y2 = float(input("y2: "))
+            color = input("Цвет: ")
+            shape = Line(x1, y1, x2, y2, color)
+            command = AddShapeCommand()
+            history.execute_command(command, canvas, shape)
+            print("Линия добавлена.")
+        except ValueError:
+            print("Ошибка ввода данных.")
+
+    elif choice == '4':
+        if not canvas.shapes:
+            print("Нет фигур для удаления.")
+            continue
+        print("Список фигур:")
+        for i, shape in enumerate(canvas.shapes):
+            print(f"{i}: {type(shape).__name__}")
+        try:
+            idx = int(input("Индекс фигуры для удаления: "))
+            if 0 <= idx < len(canvas.shapes):
+                shape = canvas.shapes[idx]
+                command = RemoveShapeCommand()
                 history.execute_command(command, canvas, shape)
-                print("Круг добавлен.")
-            except ValueError:
-                print("Ошибка ввода данных.")
+                print("Фигура удалена.")
+            else:
+                print("Неверный индекс.")
+        except ValueError:
+            print("Введите число.")
 
-        elif choice == '2':
-            try:
-                x = float(input("x: "))
-                y = float(input("y: "))
-                width = float(input("Ширина: "))
-                height = float(input("Высота: "))
-                color = input("Цвет: ")
-                shape = Rectangle(x, y, width, height, color)
-                command = AddShapeCommand()
-                history.execute_command(command, canvas, shape)
-                print("Прямоугольник добавлен.")
-            except ValueError:
-                print("Ошибка ввода данных.")
+    elif choice == '5':
+        if not canvas.shapes:
+            print("Нет фигур для перемещения.")
+            continue
+        print("Список фигур:")
+        for i, shape in enumerate(canvas.shapes):
+            print(f"{i}: {type(shape).__name__}")
+        try:
+            idx = int(input("Индекс фигуры: "))
+            if 0 <= idx < len(canvas.shapes):
+                dx = float(input("dx: "))
+                dy = float(input("dy: "))
+                shape = canvas.shapes[idx]
+                command = MoveShapeCommand()
+                history.execute_command(command, canvas, shape, dx, dy)
+                print("Фигура перемещена.")
+            else:
+                print("Неверный индекс.")
+        except ValueError:
+            print("Ошибка ввода данных.")
 
-        elif choice == '3':
-            try:
-                x1 = float(input("x1: "))
-                y1 = float(input("y1: "))
-                x2 = float(input("x2: "))
-                y2 = float(input("y2: "))
-                color = input("Цвет: ")
-                shape = Line(x1, y1, x2, y2, color)
-                command = AddShapeCommand()
-                history.execute_command(command, canvas, shape)
-                print("Линия добавлена.")
-            except ValueError:
-                print("Ошибка ввода данных.")
+    elif choice == '6':
+        if not canvas.shapes:
+            print("Нет фигур для изменения цвета.")
+            continue
+        print("Список фигур:")
+        for i, shape in enumerate(canvas.shapes):
+            print(f"{i}: {type(shape).__name__}, цвет: {shape.color}")
+        try:
+            idx = int(input("Индекс фигуры: "))
+            if 0 <= idx < len(canvas.shapes):
+                new_color = input("Новый цвет: ")
+                shape = canvas.shapes[idx]
+                command = ChangeColorCommand()
+                history.execute_command(command, canvas, shape, new_color)
+                print("Цвет изменен.")
+            else:
+                print("Неверный индекс.")
+        except ValueError:
+            print("Ошибка ввода данных.")
 
-        elif choice == '4':
-            if not canvas.shapes:
-                print("Нет фигур для удаления.")
-                continue
-            print("Список фигур:")
-            for i, shape in enumerate(canvas.shapes):
-                print(f"{i}: {type(shape).__name__}")
-            try:
-                idx = int(input("Индекс фигуры для удаления: "))
-                if 0 <= idx < len(canvas.shapes):
-                    shape = canvas.shapes[idx]
-                    command = RemoveShapeCommand()
-                    history.execute_command(command, canvas, shape)
-                    print("Фигура удалена.")
-                else:
-                    print("Неверный индекс.")
-            except ValueError:
-                print("Введите число.")
+    elif choice == '7':
+        history.undo(canvas)
+        print("Undo выполнено.")
 
-        elif choice == '5':
-            if not canvas.shapes:
-                print("Нет фигур для перемещения.")
-                continue
-            print("Список фигур:")
-            for i, shape in enumerate(canvas.shapes):
-                print(f"{i}: {type(shape).__name__}")
-            try:
-                idx = int(input("Индекс фигуры: "))
-                if 0 <= idx < len(canvas.shapes):
-                    dx = float(input("dx: "))
-                    dy = float(input("dy: "))
-                    shape = canvas.shapes[idx]
-                    command = MoveShapeCommand()
-                    history.execute_command(command, canvas, shape, dx, dy)
-                    print("Фигура перемещена.")
-                else:
-                    print("Неверный индекс.")
-            except ValueError:
-                print("Ошибка ввода данных.")
+    elif choice == '8':
+        history.redo(canvas)
+        print("Redo выполнено.")
 
-        elif choice == '6':
-            if not canvas.shapes:
-                print("Нет фигур для изменения цвета.")
-                continue
-            print("Список фигур:")
-            for i, shape in enumerate(canvas.shapes):
-                print(f"{i}: {type(shape).__name__}, цвет: {shape.color}")
-            try:
-                idx = int(input("Индекс фигуры: "))
-                if 0 <= idx < len(canvas.shapes):
-                    new_color = input("Новый цвет: ")
-                    shape = canvas.shapes[idx]
-                    command = ChangeColorCommand()
-                    history.execute_command(command, canvas, shape, new_color)
-                    print("Цвет изменен.")
-                else:
-                    print("Неверный индекс.")
-            except ValueError:
-                print("Ошибка ввода данных.")
+    elif choice == '9':
+        print("Выход.")
+        break
 
-        elif choice == '7':
-            history.undo(canvas)
-            print("Undo выполнено.")
-
-        elif choice == '8':
-            history.redo(canvas)
-            print("Redo выполнено.")
-
-        elif choice == '9':
-            print("Выход.")
-            break
-
-        else:
-            print("Другого выбора нету...")
+    else:
+        print("Другого выбора нету...")
