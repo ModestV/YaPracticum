@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Почтовый ящик{% endblock %}</title>
+    <style>
+        :root {
+            --bg: #f3ede4;
+            --paper: #fffaf4;
+            --paper-2: #fff;
+            --ink: #30261d;
+            --muted: #7e6d5c;
+            --line: #dbcab6;
+            --accent: #b85042;
+            --accent-dark: #8d372d;
+            --ok-soft: #d7ebdb;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, #fff9d9 0, transparent 24%),
+                radial-gradient(circle at bottom right, #f7d8c7 0, transparent 21%),
+                var(--bg);
+            font-family: Georgia, "Times New Roman", serif;
+            min-height: 100vh;
+        }
+
+        a { color: inherit; text-decoration: none; }
+
+        .shell {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 280px minmax(0, 1fr);
+            gap: 24px;
+        }
+
+        .sidebar,
+        .content {
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            background: rgba(255, 250, 244, 0.92);
+            box-shadow: 0 18px 50px rgba(48, 38, 29, 0.08);
+        }
+
+        .sidebar {
+            padding: 20px;
+            position: sticky;
+            top: 24px;
+            height: fit-content;
+        }
+
+        .content { padding: 24px; }
+
+        .mail-title {
+            margin: 0 0 6px;
+            font-size: 2rem;
+            line-height: 0.95;
+        }
+
+        .muted { color: var(--muted); }
+
+        .pill,
+        .badge-unread,
+        .badge-read,
+        .badge-folder {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.88rem;
+            border: 1px solid var(--line);
+            background: var(--paper-2);
+        }
+
+        .badge-unread {
+            background: #fff1c2;
+            border-color: #e1b96f;
+        }
+
+        .badge-read {
+            background: var(--ok-soft);
+            border-color: #a9cdb0;
+        }
+
+        .compose-button,
+        .button,
+        button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 1px solid transparent;
+            border-radius: 14px;
+            padding: 12px 16px;
+            font-size: 0.98rem;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .compose-button,
+        .button-primary {
+            background: var(--accent);
+            color: #fff9f2;
+        }
+
+        .button-ghost {
+            background: var(--paper-2);
+            border-color: var(--line);
+        }
+
+        .button-subtle {
+            padding: 8px 12px;
+            font-size: 0.86rem;
+            background: transparent;
+            color: var(--muted);
+            border: 1px dashed var(--line);
+        }
+
+        .nav-list {
+            display: grid;
+            gap: 10px;
+            margin: 18px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .nav-link {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            border-radius: 16px;
+            border: 1px solid var(--line);
+            background: var(--paper-2);
+        }
+
+        .nav-link.active {
+            background: #2f5d62;
+            color: #f8fbfb;
+            border-color: #2f5d62;
+        }
+
+        .header-row,
+        .message-top,
+        .message-bottom,
+        .detail-meta,
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .message-list {
+            display: grid;
+            gap: 14px;
+            margin-top: 20px;
+        }
+
+        .message-item,
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 18px;
+            background: var(--paper-2);
+        }
+
+        .message-item.unread {
+            background: linear-gradient(135deg, #fff5cd, #fffaf2);
+            border-color: #e1b96f;
+        }
+
+        .subject {
+            font-size: 1.18rem;
+            margin: 0;
+        }
+
+        .snippet {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        .flash-stack {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .flash {
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: #fff;
+        }
+
+        .flash.success {
+            background: #eef8ef;
+            border-color: #b9d8bf;
+        }
+
+        .flash.error {
+            background: #fff0ef;
+            border-color: #efc2bc;
+        }
+
+        .field {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        label { font-weight: 700; }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: #fffdfa;
+            color: var(--ink);
+            font: inherit;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 180px;
+        }
+
+        .errors {
+            color: var(--accent-dark);
+            font-size: 0.92rem;
+        }
+
+        .body-box {
+            white-space: pre-wrap;
+            line-height: 1.7;
+            font-size: 1.03rem;
+        }
+
+        .empty {
+            padding: 28px;
+            border-radius: 18px;
+            border: 1px dashed var(--line);
+            text-align: center;
+            color: var(--muted);
+            background: #fffdf9;
+        }
+
+        .tiny-note {
+            margin-top: 10px;
+            font-size: 0.88rem;
+            color: var(--muted);
+        }
+
+        @media (max-width: 960px) {
+            .layout { grid-template-columns: 1fr; }
+            .sidebar { position: static; }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <div class="layout">
+            <aside class="sidebar">
+                <p class="pill">Демо-ящик</p>
+                <h1 class="mail-title">{{ demo_user.display_name }}</h1>
+                <p class="muted">{{ demo_user.email }}</p>
+                <p><a class="compose-button" href="{% url 'mailbox-compose' %}">Написать письмо</a></p>
+                <p><a class="button-subtle" href="{% url 'mailbox-compose' %}?subject=Записка%20себе">написать себе</a></p>
+                <ul class="nav-list">
+                    {% for item in folder_links %}
+                        <li>
+                            <a class="nav-link{% if item.is_active %} active{% endif %}" href="{% url 'mailbox-home' %}?folder={{ item.value }}">
+                                <span>{{ item.label }}</span>
+                                <strong>{{ item.count }}</strong>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <p class="tiny-note">Новый почтовый ящик здесь создать нельзя, зато этим можно пользоваться сразу.</p>
+            </aside>
+            <main class="content">
+                {% if messages %}
+                    <div class="flash-stack">
+                        {% for message in messages %}
+                            <div class="flash {{ message.tags|default:'success' }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+</body>
+</html>

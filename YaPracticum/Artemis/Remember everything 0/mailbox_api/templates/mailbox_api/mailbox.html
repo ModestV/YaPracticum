@@ -1,0 +1,69 @@
+{% extends "mailbox_api/base.html" %}
+
+{% block title %}{{ active_folder_label }} | Почтовый ящик{% endblock %}
+
+{% block content %}
+    <div class="header-row">
+        <div>
+            <p class="pill">{{ active_folder_label }}</p>
+            <h2 class="mail-title" style="font-size: 2.4rem;">{{ active_folder_label }}</h2>
+            <p class="muted">Простая страница почты в слегка неловком стиле.</p>
+        </div>
+        <div class="muted">Писем в папке: <strong>{{ entries|length }}</strong></div>
+    </div>
+
+    {% if entries %}
+        <section class="message-list">
+            {% for entry in entries %}
+                <article class="message-item{% if not entry.is_read %} unread{% endif %}">
+                    <div class="message-top">
+                        <div>
+                            <a href="{% url 'mailbox-entry-detail' entry.id %}">
+                                <h3 class="subject">{{ entry.message.subject }}</h3>
+                            </a>
+                            <p class="muted">
+                                {% if entry.direction == "incoming" %}
+                                    От: {{ entry.message.sender.email }}
+                                {% else %}
+                                    Кому: {{ entry.message.recipient.email }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="actions">
+                            {% if entry.is_read %}
+                                <span class="badge-read">прочитано</span>
+                            {% else %}
+                                <span class="badge-unread">не прочитано</span>
+                            {% endif %}
+                            <span class="badge-folder">{{ entry.direction_label }}</span>
+                        </div>
+                    </div>
+                    <p class="snippet">{{ entry.message.body|truncatechars:160 }}</p>
+                    <div class="message-bottom">
+                        <div class="muted">{{ entry.message.created_at|date:"d.m.Y H:i" }}</div>
+                        <div class="actions">
+                            <a class="button button-ghost" href="{% url 'mailbox-entry-detail' entry.id %}">Открыть</a>
+                            {% for action in entry.quick_actions %}
+                                <form method="post" action="{% url 'mailbox-entry-move' entry.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="target_folder" value="{{ action.value }}">
+                                    <input type="hidden" name="next" value="{% url 'mailbox-home' %}?folder={{ active_folder }}">
+                                    <button class="button button-ghost" type="submit">{{ action.label }}</button>
+                                </form>
+                            {% endfor %}
+                            <form method="post" action="{% url 'mailbox-entry-delete' entry.id %}">
+                                {% csrf_token %}
+                                <button class="button button-ghost" type="submit">Удалить</button>
+                            </form>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </section>
+    {% else %}
+        <div class="empty">
+            <h3>Пока пусто</h3>
+            <p>В этой папке пока нет писем. Можно написать кому-нибудь или тихонько написать себе.</p>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "mailbox_api/base.html" %}
+
+{% block title %}Написать письмо{% endblock %}
+
+{% block content %}
+    <div class="header-row">
+        <div>
+            <p class="pill">Новое письмо</p>
+            <h2 class="mail-title" style="font-size: 2.3rem;">Сочинение письма</h2>
+            <p class="muted">Отправитель фиксированный: {{ demo_user.email }}</p>
+        </div>
+        <a class="button button-ghost" href="{% url 'mailbox-home' %}?folder=outbox">К исходящим</a>
+    </div>
+
+    <section class="panel" style="margin-top: 20px;">
+        <form method="post">
+            {% csrf_token %}
+            <div class="field">
+                <label>От кого</label>
+                <input type="text" value="{{ demo_user.email }}" disabled>
+            </div>
+
+            <div class="field">
+                <label for="{{ form.recipient_email.id_for_label }}">{{ form.recipient_email.label }}</label>
+                {{ form.recipient_email }}
+                {% if form.recipient_email.errors %}
+                    <div class="errors">{{ form.recipient_email.errors|join:", " }}</div>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.subject.id_for_label }}">{{ form.subject.label }}</label>
+                {{ form.subject }}
+                {% if form.subject.errors %}
+                    <div class="errors">{{ form.subject.errors|join:", " }}</div>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.body.id_for_label }}">{{ form.body.label }}</label>
+                {{ form.body }}
+                {% if form.body.errors %}
+                    <div class="errors">{{ form.body.errors|join:", " }}</div>
+                {% endif %}
+            </div>
+
+            <div class="actions">
+                <button class="button button-primary" type="submit" name="action" value="send">Отправить письмо</button>
+                <button class="button button-subtle" type="submit" name="action" value="self">Написать себе</button>
+            </div>
+            <p class="tiny-note">Кнопка “написать себе” кладёт письмо сразу во входящие и делает его непрочитанным.</p>
+        </form>
+    </section>
+{% endblock %}

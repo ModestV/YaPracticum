@@ -1,0 +1,51 @@
+{% extends "mailbox_api/base.html" %}
+
+{% block title %}{{ entry.message.subject }}{% endblock %}
+
+{% block content %}
+    <div class="header-row">
+        <div>
+            <p class="pill">{{ entry.folder_label }}</p>
+            <h2 class="mail-title" style="font-size: 2.3rem;">{{ entry.message.subject }}</h2>
+            <p class="muted">{{ entry.direction_label }} письмо</p>
+        </div>
+        <a class="button button-ghost" href="{% url 'mailbox-home' %}?folder={{ entry.folder }}">Назад к списку</a>
+    </div>
+
+    <section class="panel" style="margin-top: 20px;">
+        <div class="detail-meta">
+            <div class="pill">
+                {% if entry.direction == "incoming" %}
+                    От: {{ entry.message.sender.email }}
+                {% else %}
+                    Кому: {{ entry.message.recipient.email }}
+                {% endif %}
+            </div>
+            <div class="pill">{{ entry.message.created_at|date:"d.m.Y H:i" }}</div>
+            {% if entry.is_read %}
+                <div class="badge-read">прочитано</div>
+            {% else %}
+                <div class="badge-unread">не прочитано</div>
+            {% endif %}
+        </div>
+
+        <div class="panel" style="margin-top: 18px;">
+            <div class="body-box">{{ entry.message.body }}</div>
+        </div>
+
+        <div class="actions" style="margin-top: 18px;">
+            {% for action in entry.quick_actions %}
+                <form method="post" action="{% url 'mailbox-entry-move' entry.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="target_folder" value="{{ action.value }}">
+                    <input type="hidden" name="next" value="{% url 'mailbox-entry-detail' entry.id %}">
+                    <button class="button button-ghost" type="submit">{{ action.label }}</button>
+                </form>
+            {% endfor %}
+            <form method="post" action="{% url 'mailbox-entry-delete' entry.id %}">
+                {% csrf_token %}
+                <button class="button button-ghost" type="submit">Удалить письмо</button>
+            </form>
+        </div>
+    </section>
+{% endblock %}
