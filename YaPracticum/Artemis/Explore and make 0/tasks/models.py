@@ -1,26 +1,34 @@
-from django.conf import settings
+from django.contrib.auth.models import User
 from django.db import models
 
 
 class Project(models.Model):
+    """Модель проекта"""
+
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
         related_name='owned_projects',
     )
-    members = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='projects', blank=True)
+    members = models.ManyToManyField(User, related_name='projects', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Настройки сортировки проектов"""
+
         ordering = ['-created_at']
 
     def __str__(self):
+        """Возвращает название проекта"""
+
         return self.name
 
 
 class Task(models.Model):
+    """Модель задачи"""
+
     STATUS_CHOICES = [
         ('todo', 'To do'),
         ('in_progress', 'In progress'),
@@ -37,12 +45,12 @@ class Task(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
         related_name='created_tasks',
     )
     assignee = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
         related_name='assigned_tasks',
     )
@@ -53,16 +61,22 @@ class Task(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        """Настройки сортировки задач"""
+
         ordering = ['deadline', '-created_at']
 
     def __str__(self):
+        """Возвращает заголовок задачи"""
+
         return self.title
 
 
 class Comment(models.Model):
+    """Модель комментария к задаче"""
+
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='comments')
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
         related_name='comments',
     )
@@ -70,9 +84,11 @@ class Comment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Настройки сортировки комментариев"""
+
         ordering = ['created_at']
 
     def __str__(self):
-        return f'Комментарий {self.author} к {self.task}'
+        """Возвращает краткое описание комментария"""
 
-# Create your models here.
+        return f'Комментарий {self.author} к {self.task}'
