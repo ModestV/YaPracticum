@@ -4,9 +4,9 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from .filters import CommentFilter, TaskFilter
 from .models import Comment, Project, Task
@@ -21,16 +21,16 @@ from .serializers import (
 User = get_user_model()
 
 
-class RegisterView(APIView):
+class RegisterView(GenericAPIView):
     """Регистрация нового пользователя"""
 
     permission_classes = [AllowAny]
-    authentication_classes = []
+    serializer_class = UserRegisterSerializer
 
     def post(self, request):
         """Создаёт пользователя и возвращает его токен"""
 
-        serializer = UserRegisterSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         token, _ = Token.objects.get_or_create(user=user)
@@ -47,7 +47,6 @@ class CustomAuthTokenView(ObtainAuthToken):
     """Получение токена по логину и паролю"""
 
     permission_classes = [AllowAny]
-    authentication_classes = []
 
     def post(self, request):
         """Проверяет пользователя и возвращает токен"""
@@ -69,7 +68,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с проектами"""
 
     serializer_class = ProjectSerializer
-    lookup_url_kwarg = 'project_id'
 
     def get_queryset(self):
         """Возвращает проекты текущего пользователя"""
@@ -87,22 +85,22 @@ class ProjectViewSet(viewsets.ModelViewSet):
         if project.owner != self.request.user:
             raise PermissionDenied('Только владелец проекта может это делать')
 
-    def update(self, request, project_id=None, partial=False):
+    def update(self, request, partial=False):
         """Обновляет проект владельцем"""
 
         project = self.get_object()
         self._check_owner(project)
         serializer = self.get_serializer(project, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        serializer.save()
         return Response(serializer.data)
 
-    def partial_update(self, request, project_id=None):
+    def partial_update(self, request):
         """Частично обновляет проект владельцем"""
 
-        return self.update(request, project_id=project_id, partial=True)
+        return self.update(request, partial=True)
 
-    def destroy(self, request, project_id=None):
+    def destroy(self, request):
         """Удаляет проект владельцем"""
 
         project = self.get_object()
@@ -110,7 +108,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return super().destroy(request)
 
     @action(detail=True, methods=['post'])
-    def add_member(self, request, project_id=None):
+    def add_member(self, request):
         """Добавляет участника в проект"""
 
         project = self.get_object()
@@ -130,7 +128,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
-    def remove_member(self, request, project_id=None):
+    def remove_member(self, request):
         """Удаляет участника из проекта"""
 
         project = self.get_object()
@@ -164,7 +162,6 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     serializer_class = TaskSerializer
     filterset_class = TaskFilter
-    lookup_url_kwarg = 'task_id'
 
     def get_queryset(self):
         """Возвращает задачи из проектов пользователя"""
@@ -175,10 +172,13 @@ class TaskViewSet(viewsets.ModelViewSet):
             .distinct()
         )
 
-    def perform_create(self, serializer):
-        """Сохраняет задачу с текущим автором"""
+    def create(self, request):
+        """Создаёт задачу с текущим автором"""
 
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         serializer.save(author=self.request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def _get_allowed_fields(self, task):
         """Возвращает поля которые можно менять пользователю"""
@@ -193,7 +193,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             allowed_fields.update({'status', 'priority'})
         return allowed_fields
 
-    def update(self, request, task_id=None, partial=False):
+    def update(self, request, partial=False):
         """Обновляет задачу с учётом прав пользователя"""
 
         task = self.get_object()
@@ -209,15 +209,15 @@ class TaskViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(task, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        serializer.save()
         return Response(serializer.data)
 
-    def partial_update(self, request, task_id=None):
+    def partial_update(self, request):
         """Частично обновляет задачу с учётом прав пользователя"""
 
-        return self.update(request, task_id=task_id, partial=True)
+        return self.update(request, partial=True)
 
-    def destroy(self, request, task_id=None):
+    def destroy(self, request):
         """Удаляет задачу по правам автора или владельца"""
 
         task = self.get_object()
@@ -231,7 +231,6 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     serializer_class = CommentSerializer
     filterset_class = CommentFilter
-    lookup_url_kwarg = 'comment_id'
 
     def get_queryset(self):
         """Возвращает комментарии из проектов пользователя"""
@@ -242,12 +241,15 @@ class CommentViewSet(viewsets.ModelViewSet):
             .distinct()
         )
 
-    def perform_create(self, serializer):
-        """Сохраняет комментарий с текущим автором"""
+    def create(self, request):
+        """Создаёт комментарий с текущим автором"""
 
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         serializer.save(author=self.request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def update(self, request, comment_id=None, partial=False):
+    def update(self, request, partial=False):
         """Обновляет комментарий его автором"""
 
         comment = self.get_object()
@@ -256,15 +258,15 @@ class CommentViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(comment, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        serializer.save()
         return Response(serializer.data)
 
-    def partial_update(self, request, comment_id=None):
+    def partial_update(self, request):
         """Частично обновляет комментарий его автором"""
 
-        return self.update(request, comment_id=comment_id, partial=True)
+        return self.update(request, partial=True)
 
-    def destroy(self, request, comment_id=None):
+    def destroy(self, request):
         """Удаляет комментарий по правам автора или владельца"""
 
         comment = self.get_object()
